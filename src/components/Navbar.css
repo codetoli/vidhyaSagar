@@ -182,3 +182,6 @@
     width: 55px;
   }
 }
+.hero__bg-blob--1 {
+  display: none;
+}
