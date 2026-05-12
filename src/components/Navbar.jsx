@@ -28,7 +28,10 @@ function Navbar() {
               setMenuOpen(false)
             }}
           >
-            <img src={logo} alt="Vidya Sagar Logo" />
+            <div className="nav__logo-img">
+              <img src={logo} alt="Vidya Sagar Logo" />
+            </div>
+            <span className="nav__logo-text">VIDYA SAGAR</span>
           </a>
 
           {/* Hamburger Button */}
