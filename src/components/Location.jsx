@@ -23,6 +23,19 @@ function Location() {
               </div>
             </div>
 
+            {/* New Email Address */}
+            <div className="contact-item">
+              <div className="contact-item__icon contact-item__icon--purple">
+                <span className="material-symbols-outlined">email</span>
+              </div>
+              <div>
+                <p className="contact-item__label">Email Address</p>
+                <p className="contact-item__value">
+                  info@vidhyasagarschool.edu.np
+                </p>
+              </div>
+            </div>
+
             <div className="contact-item">
               <div className="contact-item__icon contact-item__icon--navy">
                 <span className="material-symbols-outlined">call</span>
