@@ -1,0 +1,268 @@
+/* ============================================
+   ADMISSIONS ENQUIRY - EXACT VISUAL MATCH
+   Using official Vidhya Sagar color palette
+   ============================================ */
+
+.admission-enquiry-section {
+  width: 100%;
+  padding: 110px 24px 130px;
+  background: linear-gradient(135deg, #1A1730 0%, #2A265A 50%, #1A1730 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative blobs - matching site style */
+.admission-enquiry-section::before {
+  content: '';
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  background: var(--primary);
+  border-radius: 50%;
+  top: -80px;
+  left: -100px;
+  opacity: 0.18;
+  filter: blur(30px);
+  animation: morph 9s ease-in-out infinite;
+}
+
+.admission-enquiry-section::after {
+  content: '';
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  background: var(--accent);
+  border-radius: 50%;
+  bottom: -60px;
+  right: -80px;
+  opacity: 0.15;
+  filter: blur(30px);
+  animation: morph 7s ease-in-out infinite 2s;
+}
+
+.admission-enquiry-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 70px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* LEFT SIDE */
+.left-content {
+  color: white;
+}
+
+.main-title {
+  font-size: clamp(42px, 5.5vw, 56px);
+  line-height: 1.05;
+  font-weight: 700;
+  font-family: 'Noto Serif', serif;
+  margin-bottom: 28px;
+  letter-spacing: -1.2px;
+}
+
+.description {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.75);
+  max-width: 460px;
+  margin-bottom: 48px;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.btn-apply {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: var(--white);
+  border: none;
+  padding: 16px 34px;
+  border-radius: 9999px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(84, 76, 158, 0.35);
+}
+
+.btn-apply:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(84, 76, 158, 0.45);
+}
+
+.btn-prospectus {
+  color: white;
+  font-size: 1.05rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 2px solid rgba(255,255,255,0.5);
+  padding-bottom: 4px;
+  transition: all 0.3s;
+}
+
+.btn-prospectus:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* RIGHT SIDE - FORM CARD */
+.right-content {
+  display: flex;
+  justify-content: center;
+}
+
+.form-card {
+  background: rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(207, 207, 229, 0.25);
+  border-radius: 24px;
+  padding: 48px 46px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 25px 60px rgba(26, 23, 48, 0.5);
+}
+
+.form-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  margin-bottom: 38px;
+  font-family: 'Noto Serif', serif;
+}
+
+.admission-enquiry-form {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.form-field label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  margin-left: 4px;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 14px;
+  padding: 16px 20px;
+  font-size: 16px;
+  color: #1A1730;
+  font-family: 'Manrope', sans-serif;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(84, 76, 158, 0.25);
+  transform: translateY(-1px);
+}
+
+.form-field textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.form-field select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23544C9E' stroke-width='3' viewBox='0 0 24 24'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 20px center;
+}
+
+/* Submit Button */
+.btn-submit {
+  margin-top: 12px;
+  width: 100%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  color: var(--white);
+  border: none;
+  padding: 18px;
+  border-radius: 9999px;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  box-shadow: 0 12px 35px rgba(84, 76, 158, 0.4);
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 45px rgba(84, 76, 158, 0.5);
+}
+
+.btn-submit:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+/* Status */
+.enquiry-status {
+  margin-top: 16px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 14.5px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.enquiry-status.success {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.4);
+}
+
+.enquiry-status.error {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .admission-enquiry-container {
+    grid-template-columns: 1fr;
+    gap: 60px;
+    text-align: center;
+  }
+  .left-content { order: 2; }
+  .main-title { font-size: 42px; }
+}
+
+@media (max-width: 640px) {
+  .admission-enquiry-section { padding: 70px 20px 90px; }
+  .form-card { padding: 36px 28px; }
+  .action-buttons { justify-content: center; }
+}
