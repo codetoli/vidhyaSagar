@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import cultureFest from '../assets/Gallery/culturefest.jpg'
 import scienceExpo from '../assets/Gallery/science-expo.jpg'
 import sportWeek from '../assets/Gallery/sport-week.jpg'
+import Gallery from  "./Gallery.jsx"
 
 const events = [
   {
