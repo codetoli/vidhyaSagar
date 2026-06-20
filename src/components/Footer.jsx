@@ -7,7 +7,8 @@ import appStore from "../assets/Gallery/appstore.png";
 import facebookIcon from "../assets/Social/facebook.svg";
 import tiktokIcon from "../assets/Social/tiktok.svg";
 import whatsappIcon from "../assets/Social/whatsapp.svg";
-
+import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -15,7 +16,41 @@ const whatsappNumber = "9779841929890";
 const whatsappMessage = encodeURIComponent("Hi, I'd like to know more about Vidhya Sagar School.");
 const whatsappLink = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
+const [activeLink, setActiveLink] = useState('Home')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const navigate = useNavigate()
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerWidth > 768 && window.scrollY > 100) {
+        setIsScrolled(true)
+      } else {
+        setIsScrolled(false)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const scrollToSection = (sectionId, linkName) => {
+  setActiveLink(linkName)
+  setMenuOpen(false)
+
+  const element = document.getElementById(sectionId)
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth' })
+  } else {
+    navigate('/', { state: { scrollTo: sectionId } })
+  }
+}
+
+  const goToPage = (path, linkName) => {
+    setActiveLink(linkName)
+    setMenuOpen(false)
+    navigate(path)
+  }
   return (
     <footer className="footer">
       {/* Floating Logo */}
@@ -55,15 +90,37 @@ const whatsappLink = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
             <div className="footer__quick-links">
               <ul className="footer__list">
                 <li><a href="/">Home</a></li>
-                <li><a href="#admissionsSection">Programs</a></li>
+                <li><a href="/admission">Programs</a></li>
                 <li><a href="/notices">Notice</a></li>
-                <li><a href="#contact">Contact Us</a></li>
+                <li> <a
+           
+             href="#contact"
+              className={`nav__link ${activeLink === '' ? 'nav__link--active' : ''}`}
+              onClick={(e) => {
+                e.preventDefault()
+                scrollToSection('contact', 'C')
+                
+                
+              }}
+            >
+              Contact Us
+            </a></li>
               </ul>
 
               <ul className="footer__list">
                 <li><a href="/about">About Us</a></li>
                 <li><a href="/gallery">Gallery</a></li>
-                <li><a href="#admissionsSection">Admission</a></li>
+                <li><a
+           
+             href="#admissionsSection"
+              className={`nav__link ${activeLink === '' ? 'nav__link--active' : ''}`}
+              onClick={(e) => {
+                e.preventDefault()
+                scrollToSection('admissionsSection', 'A')
+                
+                
+              }}
+            >Admission</a></li>
               </ul>
             </div>
           </div>

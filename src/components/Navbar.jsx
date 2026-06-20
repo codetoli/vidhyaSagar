@@ -104,7 +104,7 @@ function Navbar() {
               className={`nav__link ${activeLink === 'About Us' ? 'nav__link--active' : ''}`}
               onClick={(e) => {
                 e.preventDefault()
-                scrollToSection('aboutSection', 'About Us')
+              
                 goToPage("/about")
               }}
             >
@@ -152,7 +152,9 @@ function Navbar() {
           {/* CTA */}
           <button
             className="nav__cta"
-            onClick={() => scrollToSection('admissionsSection', 'Admissions')}
+            onClick={(e) => {
+                e.preventDefault()
+                goToPage('/admission', 'Admissions')}}
           >
             Explore Programs
           </button>

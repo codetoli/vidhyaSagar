@@ -82,6 +82,8 @@ function PublicLayout() {
           <Route path="/about" element={<About />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/notices" element={<Notices />} />
+          <Route path="/admission" element={<Admissions />}/>
+          
         </Routes>
         {showPopup && <Banner onClose={() => setShowPopup(false)} />}
       </main>

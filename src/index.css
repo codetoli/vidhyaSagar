@@ -1164,6 +1164,7 @@ h3 {
   overflow: hidden;
   background: linear-gradient(135deg, #1A1730 0%, #2A265A 50%, #1A1730 100%);
   padding: 100px 0 50px;
+  top:5px;
   margin-bottom:0;
 }
 
@@ -1184,6 +1185,7 @@ h3 {
   background: var(--accent);
   bottom: -40px; right: -60px;
   opacity: 0.15;
+  
   animation: morph 7s ease-in-out infinite 2s;
 }
 .admissions__bg-img {
@@ -1910,7 +1912,8 @@ h3 {
   }
 
   .nav--scrolled .nav__cta {
-    display: none;
+    font-size: 1.1rem;
+    color: var(--text-dark);
   }
 
   /* Hero */
