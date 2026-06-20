@@ -1,10 +1,36 @@
 import hero1 from '../assets/Gallery/hero1.jpg'
 import hero2 from '../assets/Gallery/hero2.jpg'
 import hero3 from '../assets/Gallery/hero3.jpg'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 
 function Hero() {
+    const location = useLocation()
+  const navigate = useNavigate()
+const [activeLink, setActiveLink] = useState('Home')
+const [menuOpen, setMenuOpen] = useState(false)
   const scrollTo = (sectionId) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+  if (location.state?.scrollTo) {
+    const target = location.state.scrollTo
+    // wait for next paint, then check element exists before scrolling
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = document.getElementById(target)
+        if (el) el.scrollIntoView({ behavior: 'smooth' })
+        navigate('.', { replace: true, state: {} })
+      })
+    })
+  }
+}, [location.state])
+
+const goToPage = (path, linkName) => {
+    setActiveLink(linkName)
+    setMenuOpen(false)
+    navigate(path)
   }
 
   return (
@@ -27,7 +53,7 @@ function Hero() {
             <button className="btn-primary" onClick={() => scrollTo('admissionsSection')}>
               Explore Programs
             </button>
-            <button className="btn-secondary" onClick={() => scrollTo('locationSection')}>
+            <button className="btn-secondary" onClick={() => goToPage('/about')}>
               Our Campus
             </button>
           </div>

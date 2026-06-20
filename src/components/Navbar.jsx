@@ -22,14 +22,16 @@ function Navbar() {
   }, [])
 
   const scrollToSection = (sectionId, linkName) => {
-    setActiveLink(linkName)
-    setMenuOpen(false)
+  setActiveLink(linkName)
+  setMenuOpen(false)
 
-    const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
-    }
+  const element = document.getElementById(sectionId)
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth' })
+  } else {
+    navigate('/', { state: { scrollTo: sectionId } })
   }
+}
 
   const goToPage = (path, linkName) => {
     setActiveLink(linkName)
@@ -44,13 +46,13 @@ function Navbar() {
 
           {/* Logo */}
           <a
-            href="#"
             className="nav__logo"
             onClick={(e) => {
               e.preventDefault()
               window.scrollTo({ top: 0, behavior: 'smooth' })
               setActiveLink('Home')
               setMenuOpen(false)
+               goToPage("/")
             }}
           >
             <div className="nav__logo-img">
@@ -61,7 +63,7 @@ function Navbar() {
               <h1 className="nav__logo-nepali">विद्या सागर</h1>
               <h2 className="nav__logo-english">
                 <span className="blue">VIDHYA</span>
-                <span className="orange"> SAGAR</span>
+                <span className="blue"> SAGAR</span>
               </h2>
             </div>
           </a>
@@ -81,31 +83,36 @@ function Navbar() {
           <div className={`nav__links ${menuOpen ? 'nav__links--open' : ''}`}>
 
             <a
-              href="#"
+            
               className={`nav__link ${activeLink === 'Home' ? 'nav__link--active' : ''}`}
-              onClick={(e) => {
-                e.preventDefault()
-                window.scrollTo({ top: 0, behavior: 'smooth' })
-                setActiveLink('Home')
-                setMenuOpen(false)
-              }}
-            >
-              Home
+  onClick={(e) => {
+    e.preventDefault()
+    setActiveLink('Home')
+    setMenuOpen(false)
+    if (window.location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      goToPage("/")
+
+    }
+  }}
+>
+  Home
             </a>
 
             <a
-              href="#aboutSection"
               className={`nav__link ${activeLink === 'About Us' ? 'nav__link--active' : ''}`}
               onClick={(e) => {
                 e.preventDefault()
                 scrollToSection('aboutSection', 'About Us')
+                goToPage("/about")
               }}
             >
               About Us
             </a>
 
             <a
-              href="/gallery"
+             
               className={`nav__link ${activeLink === 'Gallery,' ? 'nav__link--active' : ''}`}
               onClick={(e) => {
                 e.preventDefault()
@@ -116,7 +123,7 @@ function Navbar() {
             </a>
 
             <a
-              href="/notices"
+             
               className={`nav__link ${activeLink === 'Notice' ? 'nav__link--active' : ''}`}
               onClick={(e) => {
                 e.preventDefault()
@@ -127,11 +134,14 @@ function Navbar() {
             </a>
 
             <a
-              href="#location"
+           
+             href="#contact"
               className={`nav__link ${activeLink === '' ? 'nav__link--active' : ''}`}
               onClick={(e) => {
                 e.preventDefault()
-                scrollToSection('contactSection', 'Contact Us')
+                scrollToSection('contact', 'C')
+                
+                
               }}
             >
               Contact Us

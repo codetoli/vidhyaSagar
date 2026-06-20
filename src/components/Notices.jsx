@@ -1,224 +1,389 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiLoader, FiX, FiCalendar, FiSearch,
-  FiFileText, FiDownload, FiChevronLeft, FiChevronRight
+  FiFileText, FiDownload, FiChevronLeft, FiChevronRight,
+  FiExternalLink
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { db } from '../firebase/config';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 
-/* ── Device detection ── */
+/* ── helpers ── */
 const isMobile = () =>
   /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
 
-/* ── Desktop blob download ── */
-const downloadDesktop = async (url, title = 'notice') => {
-  const filename = `${title.replace(/\s+/g, '_')}.jpg`;
+const getAttachment = (post) => {
+  const url =
+    post.pdfUrl ||
+    post.imageUrl ||
+    post.fileUrl ||
+    '';
+
+  let type = post.attachmentType;
+
+  if (!type) {
+    if (post.pdfUrl || url.toLowerCase().includes('.pdf')) type = 'pdf';
+    else if (post.imageUrl || url.match(/\.(jpg|jpeg|png|webp)/i)) type = 'image';
+    else type = '';
+  }
+
+  return { url, type };
+};
+
+/* Build a Cloudinary download URL for images (forces attachment header) */
+const cloudinaryDownloadUrl = (url, filename) => {
+  if (!url.includes('cloudinary.com')) return url;
+  const safe = filename.replace(/\s+/g, '_').replace(/\./g, '_');
+  return url.replace('/upload/', `/upload/fl_attachment:${safe}/`);
+};
+
+/* Cloudinary: swap /image/upload/ or /raw/upload/ → /raw/upload/ for actual PDF serving */
+const cloudinaryPdfUrl = (url) => {
+  if (!url || !url.includes('cloudinary.com')) return url;
+  return url
+    .replace('/image/upload/', '/raw/upload/')
+    .replace('/raw/upload//raw/upload/', '/raw/upload/');
+};
+
+/**
+ * Cloudinary PDF thumbnail — simple .pdf → .jpg swap.
+ * Cloudinary auto-generates a page-1 JPEG at this URL.
+ * Same approach used in the second Notice component.
+ */
+const cloudinaryPdfThumbnail = (url) => {
+  if (!url || !url.includes('cloudinary.com')) return null;
+  return url.replace('.pdf', '.jpg');
+};
+
+/**
+ * Direct blob download — works cross-origin for Cloudinary assets.
+ * Falls back to window.open if fetch fails.
+ */
+const downloadFile = async (url, filename) => {
   try {
-    const downloadUrl = url.includes('cloudinary.com')
-      ? url.replace('/upload/', `/upload/fl_attachment:${filename.replace(/\./g, '_')}/`)
-      : url;
-    const res = await fetch(downloadUrl);
+    const res = await fetch(url, { mode: 'cors' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const blob    = await res.blob();
+    const blob = await res.blob();
     const blobUrl = URL.createObjectURL(blob);
-    const a = Object.assign(document.createElement('a'), { href: blobUrl, download: filename });
+    const a = Object.assign(document.createElement('a'), {
+      href: blobUrl,
+      download: filename,
+    });
     document.body.appendChild(a);
     a.click();
     a.remove();
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 15_000);
   } catch {
+    // Cross-origin blob failed — open in new tab as fallback
     window.open(url, '_blank', 'noopener');
   }
 };
 
 /* ══════════════════════════════════════════════
-   NOTICE CARD  — improved layout
+   PDF THUMBNAIL FALLBACK — shown when preview fails
 ══════════════════════════════════════════════ */
-const NoticeCard = ({ post, onClick }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.45 }}
-    onClick={() => onClick(post)}
+const PdfThumbnailFallback = ({ title }) => (
+  <div
     style={{
       width: '100%',
-      cursor: 'pointer',
-      background: 'white',
-      borderRadius: '18px',
-      overflow: 'hidden',
-      boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-      border: '1px solid rgba(26,35,126,0.08)',
+      height: '100%',
       display: 'flex',
       flexDirection: 'column',
-      transition: 'box-shadow 0.3s, transform 0.3s',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #2d1b69 0%, #4c1d95 60%, #6d28d9 100%)',
+      gap: '10px',
     }}
-    whileHover={{ y: -4, boxShadow: '0 12px 36px rgba(26,35,126,0.14)' }}
   >
-    {/* ── Image / placeholder ── */}
     <div
       style={{
-        position: 'relative',
-        width: '100%',
-        aspectRatio: '16/9',
-        overflow: 'hidden',
-        background: '#e8eaf6',
-        flexShrink: 0,
-      }}
-    >
-      {post?.imageUrl ? (
-        <img
-          src={post.imageUrl}
-          alt={post?.title || 'Notice'}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block',
-            transition: 'transform 0.7s ease',
-          }}
-          className="group-hover:scale-105"
-        />
-      ) : (
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'linear-gradient(135deg, #1a237e, #3949ab)',
-          }}
-        >
-          <FiFileText size={36} style={{ color: 'rgba(255,255,255,0.25)' }} />
-        </div>
-      )}
-
-      {/* Notice badge */}
-      <span
-        style={{
-          position: 'absolute',
-          top: '12px',
-          left: '12px',
-          background: '#f97316',
-          color: 'white',
-          fontSize: '9px',
-          fontWeight: 800,
-          textTransform: 'uppercase',
-          letterSpacing: '0.12em',
-          padding: '4px 10px',
-          borderRadius: '999px',
-        }}
-      >
-        Notice
-      </span>
-    </div>
-
-    {/* ── Card body ── */}
-    <div
-      style={{
+        width: '56px',
+        height: '68px',
+        background: 'rgba(255,255,255,0.12)',
+        borderRadius: '6px',
+        border: '1.5px solid rgba(255,255,255,0.2)',
         display: 'flex',
         flexDirection: 'column',
-        flex: 1,
-        padding: '18px 20px 20px',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
       }}
     >
-      {/* Date */}
       <div
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '5px',
-          fontSize: '11px',
-          fontWeight: 600,
-          color: 'rgba(26,35,126,0.4)',
-          marginBottom: '8px',
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          width: '14px',
+          height: '14px',
+          background: 'rgba(255,255,255,0.25)',
+          borderBottomLeftRadius: '4px',
+          clipPath: 'polygon(0 0, 100% 0, 100% 100%)',
         }}
-      >
-        <FiCalendar size={11} />
-        {post.date ||
-          post.createdAt?.toDate?.()?.toLocaleDateString('en-US', {
-            year: 'numeric', month: 'long', day: 'numeric',
-          }) || '—'}
-      </div>
-
-      {/* Title */}
-      <h3
+      />
+      <FiFileText size={24} style={{ color: 'rgba(255,255,255,0.85)' }} />
+    </div>
+    <span
+      style={{
+        fontSize: '9px',
+        fontWeight: 800,
+        letterSpacing: '0.18em',
+        textTransform: 'uppercase',
+        color: 'rgba(255,255,255,0.55)',
+      }}
+    >
+      PDF Document
+    </span>
+    {title && (
+      <span
         style={{
-          margin: 0,
-          fontWeight: 900,
-          fontSize: '15px',
-          lineHeight: 1.35,
-          color: '#1a237e',
+          fontSize: '10px',
+          fontWeight: 700,
+          color: 'rgba(255,255,255,0.4)',
+          maxWidth: '80%',
+          textAlign: 'center',
+          overflow: 'hidden',
           display: '-webkit-box',
           WebkitLineClamp: 2,
           WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-          marginBottom: '8px',
-          transition: 'color 0.2s',
         }}
       >
-        {post.title}
-      </h3>
+        {title}
+      </span>
+    )}
+  </div>
+);
 
-      {/* Excerpt */}
-      <p
-        style={{
-          margin: 0,
-          fontSize: '13px',
-          color: '#6b7280',
-          lineHeight: 1.6,
-          flex: 1,
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-        }}
-      >
-        {post.content || post.description || 'Click to read this notice.'}
-      </p>
+/* ══════════════════════════════════════════════
+   PDF CARD THUMBNAIL
+   Uses Cloudinary's auto-generated page-1 JPEG.
+   Falls back to the purple placeholder if it fails.
+══════════════════════════════════════════════ */
+const PdfCardThumbnail = ({ url, title }) => {
+  const [failed, setFailed] = useState(false);
+  // Simple .pdf → .jpg swap (same as second Notice component)
+  const thumbUrl = cloudinaryPdfThumbnail(url);
 
-      {/* Footer row */}
+  if (!thumbUrl || failed) {
+    return <PdfThumbnailFallback title={title} />;
+  }
+
+  return (
+    <img
+      src={thumbUrl}
+      alt={title || 'PDF preview'}
+      style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        objectPosition: 'top',
+        display: 'block',
+        transition: 'transform 0.7s ease',
+      }}
+      onError={() => setFailed(true)}
+    />
+  );
+};
+
+/* ══════════════════════════════════════════════
+   NOTICE CARD
+══════════════════════════════════════════════ */
+const NoticeCard = ({ post, onClick }) => {
+  const { url, type } = getAttachment(post);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.45 }}
+      onClick={() => onClick(post)}
+      style={{
+        width: '100%',
+        cursor: 'pointer',
+        background: 'white',
+        borderRadius: '18px',
+        overflow: 'hidden',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+        border: '1px solid rgba(26,35,126,0.08)',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'box-shadow 0.3s, transform 0.3s',
+      }}
+      whileHover={{ y: -4, boxShadow: '0 12px 36px rgba(26,35,126,0.14)' }}
+    >
+      {/* ── Thumbnail ── */}
       <div
         style={{
-          marginTop: '16px',
-          paddingTop: '12px',
-          borderTop: '1px solid #f1f5f9',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          position: 'relative',
+          width: '100%',
+          aspectRatio: '16/9',
+          overflow: 'hidden',
+          background: '#e8eaf6',
+          flexShrink: 0,
         }}
       >
+        {type === 'pdf' ? (
+          /* Cloudinary page-1 JPEG thumbnail for PDFs */
+          <PdfCardThumbnail url={url} title={post?.title} />
+        ) : url ? (
+          /* Regular image notice */
+          <img
+            src={url}
+            alt={post?.title || 'Notice'}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block',
+              transition: 'transform 0.7s ease',
+            }}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = 'https://placehold.co/600x400?text=Notice';
+            }}
+          />
+        ) : (
+          /* No attachment at all */
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'linear-gradient(135deg, #1a237e, #3949ab)',
+            }}
+          >
+            <FiFileText size={36} style={{ color: 'rgba(255,255,255,0.25)' }} />
+          </div>
+        )}
+
+        {/* Badge */}
         <span
           style={{
-            fontSize: '11px',
-            fontWeight: 700,
+            position: 'absolute',
+            top: '12px',
+            left: '12px',
+            background: type === 'pdf' ? '#7c3aed' : '#f97316',
+            color: 'white',
+            fontSize: '9px',
+            fontWeight: 800,
             textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-            color: '#1a237e',
+            letterSpacing: '0.12em',
+            padding: '4px 10px',
+            borderRadius: '999px',
           }}
         >
-          Read more →
+          {type === 'pdf' ? 'PDF' : 'Notice'}
         </span>
-        <span
+      </div>
+
+      {/* ── Card body ── */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          padding: '18px 20px 20px',
+        }}
+      >
+        <div
           style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '50%',
-            background: 'rgba(26,35,126,0.06)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
+            gap: '5px',
+            fontSize: '11px',
+            fontWeight: 600,
+            color: 'rgba(26,35,126,0.4)',
+            marginBottom: '8px',
           }}
         >
-          <FiChevronRight size={13} style={{ color: '#1a237e' }} />
-        </span>
+          <FiCalendar size={11} />
+          {post.date ||
+            post.createdAt?.toDate?.()?.toLocaleDateString('en-US', {
+              year: 'numeric', month: 'long', day: 'numeric',
+            }) || '—'}
+        </div>
+
+        <h3
+          style={{
+            margin: 0,
+            fontWeight: 900,
+            fontSize: '15px',
+            lineHeight: 1.35,
+            color: '#1a237e',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            marginBottom: '8px',
+          }}
+        >
+          {post.title}
+        </h3>
+
+        <p
+          style={{
+            margin: 0,
+            fontSize: '13px',
+            color: '#6b7280',
+            lineHeight: 1.6,
+            flex: 1,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
+        >
+          {post.content || post.description || 'Click to view this notice.'}
+        </p>
+
+        <div
+          style={{
+            marginTop: '16px',
+            paddingTop: '12px',
+            borderTop: '1px solid #f1f5f9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              color: type === 'pdf' ? '#7c3aed' : '#1a237e',
+            }}
+          >
+            {type === 'pdf' ? 'View PDF →' : 'Read more →'}
+          </span>
+          <span
+            style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '50%',
+              background: type === 'pdf' ? 'rgba(124,58,237,0.08)' : 'rgba(26,35,126,0.06)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {type === 'pdf'
+              ? <FiFileText size={13} style={{ color: '#7c3aed' }} />
+              : <FiChevronRight size={13} style={{ color: '#1a237e' }} />
+            }
+          </span>
+        </div>
       </div>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
+
+
 
 /* ══════════════════════════════════════════════
    MAIN PAGE
@@ -242,7 +407,6 @@ const Notices = () => {
     return () => unsub();
   }, []);
 
-  /* ── Filtered posts ── */
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return posts;
@@ -256,7 +420,6 @@ const Notices = () => {
     });
   }, [posts, searchQuery]);
 
-  /* ── Lightbox nav ── */
   const navigatePost = (dir) => {
     if (!selectedPost || filtered.length === 0) return;
     const idx  = filtered.findIndex(p => p.id === selectedPost.id);
@@ -264,7 +427,6 @@ const Notices = () => {
     setSelectedPost(filtered[next]);
   };
 
-  /* ── Keyboard ── */
   useEffect(() => {
     const handler = (e) => {
       if (!selectedPost) return;
@@ -276,33 +438,51 @@ const Notices = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [selectedPost, filtered]);
 
-  /* ── Swipe ── */
   const onTouchStart = (e) => {
-    if (e.target.closest('a, button')) return;
+    if (e.target.closest('a, button, iframe')) return;
     setTouchStartX(e.targetTouches[0].clientX);
   };
   const onTouchMove = (e) => {
-    if (e.target.closest('a, button')) return;
+    if (e.target.closest('a, button, iframe')) return;
     setTouchEndX(e.targetTouches[0].clientX);
   };
   const onTouchEnd = (e) => {
-    if (e.target.closest('a, button')) return;
+    if (e.target.closest('a, button, iframe')) return;
     if (touchStartX - touchEndX > 50) navigatePost(1);
     if (touchEndX - touchStartX > 50) navigatePost(-1);
   };
 
-  const handleDesktopDownload = async (e, url, title) => {
+  /* ── FIXED: always blob-download so the file saves instead of opening ── */
+  const handleDownload = async (e, post) => {
     e.stopPropagation();
+    const { url, type } = getAttachment(post);
+    if (!url || downloading) return;
+
+    const ext      = type === 'pdf' ? 'pdf' : 'jpg';
+    const filename = `${(post.title || 'notice').replace(/\s+/g, '_')}.${ext}`;
+
+    if (isMobile()) {
+      // On mobile, direct-open is more reliable than a blob save
+      window.open(url, '_blank', 'noopener');
+      return;
+    }
+
     setDownloading(true);
-    await downloadDesktop(url, title);
-    setDownloading(false);
+    try {
+      // For images: use Cloudinary fl_attachment to bypass CORS content-disposition
+      const downloadUrl = type === 'image' && url.includes('cloudinary.com')
+        ? cloudinaryDownloadUrl(url, filename)
+        : url;
+      await downloadFile(downloadUrl, filename);
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const currentIndex = selectedPost
     ? filtered.findIndex(p => p.id === selectedPost.id)
     : -1;
 
-  /* ── Shared spacing (mirrors Gallery exactly) ── */
   const sectionPadding = {
     paddingTop: '48px',
     paddingRight: 'clamp(16px, 4vw, 40px)',
@@ -313,12 +493,12 @@ const Notices = () => {
     boxSizing: 'border-box',
   };
 
+  const selectedAttachment = selectedPost ? getAttachment(selectedPost) : null;
+
   return (
     <div style={{ minHeight: '100vh', background: '#eef0f8' }}>
 
-      {/* ══════════════════════════════════════
-          HERO — mirrors Gallery hero
-      ══════════════════════════════════════ */}
+      {/* ── HERO ── */}
       <section
         style={{
           position: 'relative',
@@ -329,7 +509,6 @@ const Notices = () => {
           paddingBottom: '64px',
         }}
       >
-        {/* Ghost watermark */}
         <p
           style={{
             position: 'absolute',
@@ -347,10 +526,9 @@ const Notices = () => {
             margin: 0,
           }}
         >
-          SCHOOL SAGAR VIDHYA
+          NOTICES
         </p>
 
-        {/* Breadcrumb */}
         <p
           style={{
             position: 'relative',
@@ -368,7 +546,6 @@ const Notices = () => {
           <span style={{ color: '#f97316' }}>Notices</span>
         </p>
 
-        {/* Title */}
         <motion.h1
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
@@ -388,7 +565,6 @@ const Notices = () => {
           <span style={{ color: '#f97316' }}>Notices</span>
         </motion.h1>
 
-        {/* Orange accent bar */}
         <motion.div
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
@@ -403,7 +579,6 @@ const Notices = () => {
           }}
         />
 
-        {/* Subtitle */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -423,10 +598,7 @@ const Notices = () => {
         </motion.p>
       </section>
 
-      {/* ══════════════════════════════════════
-          SEARCH BAR — sits between hero and grid,
-          styled as a standalone floating bar
-      ══════════════════════════════════════ */}
+      {/* ── SEARCH ── */}
       <div
         style={{
           maxWidth: '1152px',
@@ -451,7 +623,6 @@ const Notices = () => {
           }}
         >
           <FiSearch size={16} style={{ color: 'rgba(26,35,126,0.3)', flexShrink: 0 }} />
-
           <input
             type="text"
             value={searchQuery}
@@ -468,8 +639,6 @@ const Notices = () => {
               minWidth: 0,
             }}
           />
-
-          {/* Result count pill */}
           {searchQuery && (
             <span
               style={{
@@ -487,8 +656,6 @@ const Notices = () => {
               {filtered.length} found
             </span>
           )}
-
-          {/* Clear button */}
           {searchQuery ? (
             <button
               onClick={() => setSearchQuery('')}
@@ -509,7 +676,6 @@ const Notices = () => {
               <FiX size={14} />
             </button>
           ) : (
-            /* Decorative search pill on the right when idle */
             <span
               style={{
                 flexShrink: 0,
@@ -529,12 +695,8 @@ const Notices = () => {
         </motion.div>
       </div>
 
-      {/* ══════════════════════════════════════
-          GRID — same spacing as Gallery
-      ══════════════════════════════════════ */}
+      {/* ── GRID ── */}
       <section style={sectionPadding}>
-
-        {/* Section label (hidden during search) */}
         {!searchQuery && (
           <div style={{ marginBottom: '28px', textAlign: 'center' }}>
             <p
@@ -578,7 +740,6 @@ const Notices = () => {
               Loading notices...
             </p>
           </div>
-
         ) : filtered.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -632,14 +793,7 @@ const Notices = () => {
               </button>
             )}
           </motion.div>
-
         ) : (
-          /*
-           * Grid columns (inline, no Tailwind purge risk):
-           *   mobile  (< ~480px) → 1 column   minmax floors at 300px
-           *   tablet  (≥ ~480px) → 2 columns
-           *   desktop (≥ ~960px) → 3 columns
-           */
           <div
             style={{
               display: 'grid',
@@ -655,10 +809,10 @@ const Notices = () => {
       </section>
 
       {/* ══════════════════════════════════════
-          LIGHTBOX MODAL — improved preview
+          LIGHTBOX MODAL
       ══════════════════════════════════════ */}
       <AnimatePresence>
-        {selectedPost && (
+        {selectedPost && selectedAttachment && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -734,208 +888,175 @@ const Notices = () => {
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ duration: 0.2 }}
               style={{
-                maxWidth: '720px',
+                maxWidth: '860px',
                 width: '100%',
-                maxHeight: '88vh',
-                overflowY: 'auto',
+                height: selectedAttachment.type === 'pdf' ? '92vh' : 'auto',
+                maxHeight: '92vh',
+                display: 'flex',
+                flexDirection: 'column',
                 borderRadius: '20px',
                 background: 'white',
                 boxShadow: '0 32px 80px rgba(0,0,0,0.4)',
                 border: '1px solid rgba(255,255,255,0.08)',
+                overflow: 'hidden',
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* ── Hero image with gradient fade ── */}
-              {selectedPost.imageUrl && (
-                <div
-                  style={{
-                    position: 'relative',
-                    width: '100%',
-                    aspectRatio: '16/9',
-                    overflow: 'hidden',
-                    borderRadius: '20px 20px 0 0',
-                  }}
-                >
-                  <img
-                    src={selectedPost.imageUrl}
-                    alt={selectedPost.title}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                  />
-                  {/* Bottom fade so text floats over cleanly */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'linear-gradient(to top, white 0%, transparent 55%)',
-                    }}
-                  />
-                  {/* Notice badge on image */}
-                  <span
-                    style={{
-                      position: 'absolute',
-                      top: '16px',
-                      left: '16px',
-                      background: '#f97316',
-                      color: 'white',
-                      fontSize: '9px',
-                      fontWeight: 800,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.12em',
-                      padding: '5px 12px',
-                      borderRadius: '999px',
-                    }}
-                  >
-                    Notice
-                  </span>
-                </div>
-              )}
+              {/* ══════════════════════════════════════════
+                  UNIFIED MODAL BODY — same layout for both
+                  PDF and image notices.
+                  PDFs: show the Cloudinary .jpg preview
+                        (same trick as the card thumbnail)
+                  Images: show the image directly
+                  Both: scrollable body + same footer
+              ══════════════════════════════════════════ */}
+              {(() => {
+                // For PDFs swap .pdf → .jpg (Cloudinary page-1 image)
+                // For images use the URL as-is
+                const displayUrl = selectedAttachment.type === 'pdf'
+                  ? selectedAttachment.url.replace('.pdf', '.jpg')
+                  : selectedAttachment.url;
 
-              {/* ── Body ── */}
-              <div
-                style={{
-                  padding: 'clamp(20px, 4vw, 40px)',
-                  /* pull up slightly when image exists so title overlaps the fade */
-                  marginTop: selectedPost.imageUrl ? '-36px' : '0',
-                  position: 'relative',
-                }}
-              >
-                {/* Date badge */}
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.1em',
-                    color: '#1a237e',
-                    background: 'rgba(26,35,126,0.05)',
-                    border: '1px solid rgba(26,35,126,0.1)',
-                    borderRadius: '999px',
-                    padding: '6px 14px',
-                    marginBottom: '16px',
-                  }}
-                >
-                  <FiCalendar size={11} />
-                  {selectedPost.date ||
-                    selectedPost.createdAt?.toDate?.()?.toLocaleDateString('en-US', {
-                      year: 'numeric', month: 'long', day: 'numeric',
-                    }) || '—'}
-                </div>
+                const accentColor = selectedAttachment.type === 'pdf' ? '#7c3aed' : '#7c3aed';
+                const badgeLabel  = selectedAttachment.type === 'pdf' ? 'PDF' : 'Notice';
 
-                {/* Title */}
-                <h2
-                  style={{
-                    fontWeight: 900,
-                    fontSize: 'clamp(1.3rem, 3vw, 2rem)',
-                    lineHeight: 1.25,
-                    color: '#1a237e',
-                    margin: '0 0 16px',
-                  }}
-                >
-                  {selectedPost.title}
-                </h2>
+                return (
+                  <>
+                    {/* ── Scrollable content area ── */}
+                    <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
 
-                {/* Orange divider */}
-                <div
-                  style={{
-                    width: '48px',
-                    height: '3px',
-                    background: '#f97316',
-                    borderRadius: '9999px',
-                    marginBottom: '20px',
-                  }}
-                />
+                      {/* Attachment image (full width, natural height, scrollable) */}
+                      {displayUrl && (
+                        <div style={{ position: 'relative', width: '100%' }}>
+                          <img
+                            src={displayUrl}
+                            alt={selectedPost.title}
+                            style={{ width: '100%', height: 'auto', display: 'block' }}
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                          {/* Gradient fade into body */}
+                          <div style={{
+                            position: 'absolute', bottom: 0, left: 0, right: 0,
+                            height: '80px',
+                            background: 'linear-gradient(to top, white 0%, transparent 100%)',
+                            pointerEvents: 'none',
+                          }} />
+                          {/* Badge */}
+                          <span style={{
+                            position: 'absolute', top: '16px', left: '16px',
+                            background: accentColor, color: 'white',
+                            fontSize: '9px', fontWeight: 800,
+                            textTransform: 'uppercase', letterSpacing: '0.12em',
+                            padding: '5px 12px', borderRadius: '999px',
+                          }}>
+                            {badgeLabel}
+                          </span>
+                        </div>
+                      )}
 
-                {/* Content */}
-                <p
-                  style={{
-                    color: '#4b5563',
-                    fontSize: '15px',
-                    lineHeight: 1.75,
-                    whiteSpace: 'pre-wrap',
-                    margin: 0,
-                  }}
-                >
-                  {selectedPost.content || selectedPost.description}
-                </p>
-              </div>
+                      {/* Body: date + title + description */}
+                      <div style={{ padding: 'clamp(20px, 4vw, 40px)' }}>
+                        <div style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '6px',
+                          fontSize: '11px', fontWeight: 700,
+                          textTransform: 'uppercase', letterSpacing: '0.1em',
+                          color: '#1a237e',
+                          background: 'rgba(26,35,126,0.05)',
+                          border: '1px solid rgba(26,35,126,0.1)',
+                          borderRadius: '999px', padding: '6px 14px',
+                          marginBottom: '16px',
+                        }}>
+                          <FiCalendar size={11} />
+                          {selectedPost.date ||
+                            selectedPost.createdAt?.toDate?.()?.toLocaleDateString('en-US', {
+                              year: 'numeric', month: 'long', day: 'numeric',
+                            }) || '—'}
+                        </div>
 
-              {/* ── Footer bar ── */}
-              {selectedPost.imageUrl && (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '16px clamp(20px, 4vw, 40px)',
-                    borderTop: '1px solid #f1f5f9',
-                  }}
-                >
-                  <span style={{ fontSize: '12px', fontFamily: 'monospace', color: '#94a3b8' }}>
-                    {currentIndex + 1} / {filtered.length}
-                  </span>
+                        <h2 style={{
+                          fontWeight: 900, fontSize: 'clamp(1.3rem, 3vw, 2rem)',
+                          lineHeight: 1.25, color: '#1a237e', margin: '0 0 16px',
+                        }}>
+                          {selectedPost.title}
+                        </h2>
 
-                  {isMobile() ? (
-                    <a
-                      href={selectedPost.imageUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      onTouchStart={(e) => e.stopPropagation()}
-                      onTouchMove={(e) => e.stopPropagation()}
-                      onTouchEnd={(e) => e.stopPropagation()}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        color: 'white',
-                        fontWeight: 700,
-                        fontSize: '11px',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.1em',
-                        textDecoration: 'none',
-                        background: '#1a237e',
-                        padding: '10px 20px',
-                        borderRadius: '10px',
-                        boxShadow: '0 4px 14px rgba(26,35,126,0.25)',
-                      }}
-                    >
-                      <FiDownload size={13} />
-                      Open
-                    </a>
-                  ) : (
-                    <button
-                      onClick={(e) => handleDesktopDownload(e, selectedPost.imageUrl, selectedPost.title)}
-                      disabled={downloading}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        color: 'white',
-                        fontWeight: 700,
-                        fontSize: '11px',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.1em',
-                        background: '#1a237e',
-                        padding: '10px 20px',
-                        borderRadius: '10px',
-                        boxShadow: '0 4px 14px rgba(26,35,126,0.25)',
-                        border: 'none',
-                        cursor: downloading ? 'not-allowed' : 'pointer',
-                        opacity: downloading ? 0.5 : 1,
-                      }}
-                    >
-                      {downloading
-                        ? <FiLoader size={13} className="animate-spin" />
-                        : <FiDownload size={13} />
-                      }
-                      {downloading ? 'Saving...' : 'Download'}
-                    </button>
-                  )}
-                </div>
-              )}
+                        <div style={{
+                          width: '48px', height: '3px',
+                          background: accentColor,
+                          borderRadius: '9999px', marginBottom: '20px',
+                        }} />
+
+                        {(selectedPost.content || selectedPost.description) && (
+                          <p style={{
+                            color: '#4b5563', fontSize: '15px',
+                            lineHeight: 1.75, whiteSpace: 'pre-wrap', margin: 0,
+                          }}>
+                            {selectedPost.content || selectedPost.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ── Footer: counter + Open + Download ── */}
+                    <div style={{
+                      display: 'flex', alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '14px clamp(20px, 4vw, 40px)',
+                      borderTop: '1px solid #f1f5f9',
+                      gap: '12px', flexShrink: 0, background: 'white',
+                    }}>
+                      <span style={{ fontSize: '12px', fontFamily: 'monospace', color: '#94a3b8' }}>
+                        {currentIndex + 1} / {filtered.length}
+                      </span>
+
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        {/* Open — links to original PDF/image URL */}
+                        <a
+                          href={selectedAttachment.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '6px',
+                            fontSize: '11px', fontWeight: 700,
+                            textTransform: 'uppercase', letterSpacing: '0.08em',
+                            color: '#64748b',
+                            background: 'rgba(100,116,139,0.08)',
+                            border: '1px solid rgba(100,116,139,0.15)',
+                            padding: '9px 16px', borderRadius: '10px',
+                            textDecoration: 'none',
+                          }}
+                        >
+                          <FiExternalLink size={12} /> View Full 
+                        </a>
+
+                        {/* Download */}
+                        <button
+                          onClick={(e) => handleDownload(e, selectedPost)}
+                          disabled={downloading}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            color: 'white', fontWeight: 700, fontSize: '11px',
+                            textTransform: 'uppercase', letterSpacing: '0.1em',
+                            background: accentColor,
+                            padding: '10px 20px', borderRadius: '10px',
+                            boxShadow: selectedAttachment.type === 'pdf'
+                              ? '0 4px 14px rgba(124,58,237,0.3)'
+                              : '0 4px 14px rgba(26,35,126,0.25)',
+                            border: 'none',
+                            cursor: downloading ? 'not-allowed' : 'pointer',
+                            opacity: downloading ? 0.55 : 1,
+                            transition: 'opacity 0.2s',
+                          }}
+                        >
+                          {downloading ? <FiLoader size={13} className="animate-spin" /> : <FiDownload size={13} />}
+                          {downloading ? 'Saving...' : 'Download'}
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
             </motion.div>
 
             {/* Next */}

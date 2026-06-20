@@ -96,7 +96,7 @@ function Admissions() {
     behavior: 'smooth' 
   })}
 >
-  Our Faculty 
+ Learn for Advancement
 </button>
             </div>
           </div>

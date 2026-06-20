@@ -1,8 +1,7 @@
 function Location() {
   return (
-    <section id="locationSection" className="location section-pad">
+    <section id="contact" className="location section-pad">
       <div className="location__bg"></div>
-
       <div className="container">
         <div className="location__grid">
           <div className="reveal">
@@ -47,7 +46,7 @@ function Location() {
             </div>
 
             <button className="btn-primary" style={{ marginTop: '2.5rem' }}>
-              Get Directions
+              SECURING FUTURE
             </button>
           </div>
 

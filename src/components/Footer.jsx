@@ -11,6 +11,11 @@ import whatsappIcon from "../assets/Social/whatsapp.svg";
 function Footer() {
   const currentYear = new Date().getFullYear();
 
+const whatsappNumber = "9779841929890"; 
+const whatsappMessage = encodeURIComponent("Hi, I'd like to know more about Vidhya Sagar School.");
+const whatsappLink = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
+
+
   return (
     <footer className="footer">
       {/* Floating Logo */}
@@ -30,7 +35,7 @@ function Footer() {
             <ul className="footer__contact-list">
               <li>
                 <span className="material-symbols-outlined">location_on</span>
-                <span>Punyashow Mahadev Marga, Banepa Bazar, Nepal</span>
+                <span><a href="#contact"> Punyashow Mahadev Marga, Banepa Bazar, Nepal</a></span>
               </li>
               <li>
                 <span className="material-symbols-outlined">call</span>
@@ -50,15 +55,15 @@ function Footer() {
             <div className="footer__quick-links">
               <ul className="footer__list">
                 <li><a href="/">Home</a></li>
-                <li><a href="/programs">Programs</a></li>
+                <li><a href="#admissionsSection">Programs</a></li>
                 <li><a href="/notices">Notice</a></li>
-                <li><a href="/contact">Contact Us</a></li>
+                <li><a href="#contact">Contact Us</a></li>
               </ul>
 
               <ul className="footer__list">
                 <li><a href="/about">About Us</a></li>
                 <li><a href="/gallery">Gallery</a></li>
-                <li><a href="/admission">Admission</a></li>
+                <li><a href="#admissionsSection">Admission</a></li>
               </ul>
             </div>
           </div>
@@ -69,10 +74,10 @@ function Footer() {
             <p className="footer-app__text">Get our mobile application</p>
 
             <div className="footer-app__buttons">
-              <a href="#" className="store-btn" aria-label="Google Play">
+              <a href="https://play.google.com/store/apps/details?id=com.vidhyasagar.nivid&hl=en" className="store-btn" aria-label="Google Play">
                 <img src={playStore} alt="Get it on Google Play" />
               </a>
-              <a href="#" className="store-btn" aria-label="App Store">
+              <a href="https://apps.apple.com/us/app/vidhya-sagar-banepa/id1464638579" className="store-btn" aria-label="App Store">
                 <img src={appStore} alt="Download on the App Store" />
               </a>
             </div>
@@ -83,15 +88,15 @@ function Footer() {
             <h3 className="footer__col-title">Follow Us</h3>
 
             <div className="footer__socials">
-              <a href="#" className="social-link" aria-label="Facebook">
+              <a href="https://www.facebook.com/vsbanepa/" className="social-link" aria-label="Facebook">
                 <img src={facebookIcon} alt="Facebook" />
               </a>
-              <a href="#" className="social-link" aria-label="TikTok">
+              <a href="" className="social-link" aria-label="TikTok">
                 <img src={tiktokIcon} alt="TikTok" />
               </a>
-              <a href="#" className="social-link" aria-label="WhatsApp">
-                <img src={whatsappIcon} alt="WhatsApp" />
-              </a>
+             <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="social-link" aria-label="WhatsApp">
+          <img src={whatsappIcon} alt="WhatsApp" />
+        </a>
             </div>
           </div>
 
