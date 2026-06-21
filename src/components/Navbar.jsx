@@ -68,6 +68,17 @@ function Navbar() {
 
             <div className="nav__logo-content">
               <h1 className="nav__logo-nepali">विद्या सागर</h1>
+              
+ <div style={{
+            height: '3px',
+            width:'30%',
+minWidth:'100px',
+maxWidth:'180px',
+            background: '#1e3a8a',
+            borderRadius: '9999px',
+          }} />
+      
+
               <h2 className="nav__logo-english">
                 <span className="blue">VIDHYA</span>
                 <span className="blue"> SAGAR</span>
