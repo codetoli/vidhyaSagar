@@ -2,6 +2,8 @@ import { useRef } from 'react'
 import cultureFest from '../assets/Gallery/culturefest.jpg'
 import scienceExpo from '../assets/Gallery/science-expo.jpg'
 import sportWeek from '../assets/Gallery/sport-week.jpg'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Gallery from  "./Gallery.jsx"
 
 const events = [
@@ -30,7 +32,10 @@ const events = [
 
 function Events() {
   const sliderRef = useRef(null)
-
+const [activeLink, setActiveLink] = useState('Home')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const navigate = useNavigate()
   const scroll = (direction) => {
     if (sliderRef.current) {
       sliderRef.current.scrollBy({
@@ -39,6 +44,13 @@ function Events() {
       })
     }
   }
+
+  const goToPage = (path, linkName) => {
+    setActiveLink(linkName)
+    setMenuOpen(false)
+    navigate(path)
+  }
+
 
   return (
     <section id="eventsSection" className="events section-pad">
@@ -75,7 +87,10 @@ function Events() {
                 <p className="event-card__location">
                   <span className="material-symbols-outlined">location_on</span> {event.location}
                 </p>
-                <a href="#" className="event-card__link" onClick={(e) => e.preventDefault()}>
+                <a href="gallery" className="event-card__link" onClick={(e) => {
+                e.preventDefault()
+                 goToPage('/gallery', 'Gallery')
+              }}>
                   READ MORE <span className="material-symbols-outlined">arrow_forward</span>
                 </a>
               </div>

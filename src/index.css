@@ -1501,7 +1501,7 @@ h3 {
   justify-content: center;
   background: rgba(84, 76, 158, 0.15);
   border-radius: 8px;
-  transition: background 0.3s ease, color 0.3s ease;
+  transition: 'background 0.3s ease, color 0.3s ease';
 }
 
 .footer__contact-list li:hover .material-symbols-outlined {
@@ -2271,19 +2271,27 @@ h3 {
     text-align: left;
   }
 
-  .footer__info-column,
+  .footer__info-column {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+
   .footer__app-column,
   .footer__social-column {
     grid-column: 1 / -1;
     text-align: center;
   }
 
+  .footer__info-column .footer__contact-list {
+    max-width: 100%;
+    margin: 0;
+  }
+
   .footer__info-column .footer__contact-list li {
-    justify-content: center;
+    justify-content: flex-start;
     text-align: left;
-    max-width: 320px;
-    margin-left: auto;
-    margin-right: auto;
+    max-width: 100%;
+    margin: 0 0 0.85rem;
   }
 
   .footer-app__buttons {
