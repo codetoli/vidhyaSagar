@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import { useNavigate } from 'react-router-dom';
-import { FiAlertCircle } from 'react-icons/fi';
+import { FiAlertCircle, FiMail, FiLock } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 
 const AdminLogin = () => {
@@ -20,7 +20,7 @@ const AdminLogin = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       navigate('/admin');
-    } catch (err) {
+    } catch {
       setError('Invalid email or password. Please try again.');
     } finally {
       setLoading(false);
@@ -29,92 +29,84 @@ const AdminLogin = () => {
 
   return (
    
- <div className="relative min-h-screen bg-gradient-to-br from-[#0a2540] via-[#12395a] to-[#1b4f72]">
+ <div className="min-h-screen bg-[#f3f6f9] flex items-start justify-center px-4 py-6 sm:py-10">
   <a
     href="/"
-    className="absolute top-25 right-30 bg-orange-900 text-white font-bold px-5 py-3 rounded-full transition-all duration-300 hover:bg-orange-500 hover:scale-105 shadow-md hover:shadow-lg"
+    className="absolute top-4 right-4 sm:top-5 sm:right-5 text-sm text-slate-600 px-3 py-1 rounded-full transition-all z-20"
   >
-    HOME/ADMIN
+    HOME / ADMIN
   </a>
 
-    
-    <div className="min-h-screen  flex items-center justify-center p-6">
+    <div className="w-full max-w-md mx-auto">
       
      
     
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md"
+        transition={{ duration: 0.36 }}
+        className="w-full"
       >
-      
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          {/* Header */}
-          <div className="bg-[#4a2574] px-8 py-10 text-center relative">
-            
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-            <div className="relative flex flex-col items-center gap-4">
-              <div className="w-20 h-20 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
-                <span className="text-3xl">🎓</span>
-              </div>
-               
-              <div>
-                <h1 className="text-white text-2xl font-bold tracking-wide">
-                  VIDHYA SAGAR SCHOOL
-                </h1>
-                <p className="text-[#d6bbf2] text-sm font-medium mt-2 uppercase tracking-[0.25em]">
-                  Admin Login
-                </p>
-              </div>
+        <div className="bg-white rounded-[28px] shadow-xl overflow-hidden">
+          <div className="px-8 pt-10 pb-8 text-center">
+            <div className="mx-auto w-14 h-14 rounded-xl bg-[#183b78] flex items-center justify-center shadow-sm">
+              <FiLock size={20} className="text-white" />
             </div>
+            <h2 className="text-[#123764] text-xl sm:text-2xl font-bold mt-6">ADMIN LOGIN</h2>
+             <h2 className="text-[#123764] text-xl sm:text-2xl font-bold mt-6">VIDHYA SAGAR SCHOOL</h2>
+            <p className="text-slate-400 text-sm mt-1">Authorized Personnel Only</p>
           </div>
 
-          {/* Body */}
-          <div className="p-8">
-            <p className="text-center text-gray-600 text-sm mb-8">
-              Only authorized administrators are allowed to access the dashboard.
-            </p>
+          <div className="px-6 pb-8 sm:px-8">
+            <form onSubmit={handleLogin} className="flex flex-col gap-4">
+              {error && (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">
+                  <FiAlertCircle size={18} />
+                  <span>{error}</span>
+                </div>
+              )}
 
-            {error && (
-              <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-6">
-                <FiAlertCircle size={18} />
-                <span>{error}</span>
-              </div>
-            )}
+              <label className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <FiMail size={18} />
+                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="Admin Email"
+                  className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 focus:border-[#183b78] focus:ring-2 focus:ring-[#183b78]/10 outline-none transition text-base bg-slate-50"
+                />
+              </label>
 
-            <form onSubmit={handleLogin} className="flex flex-col gap-5">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="Admin Email"
-                className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:border-[#4a2574] focus:ring-4 focus:ring-purple-100 outline-none transition text-sm"
-              />
-
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="Admin Password"
-                className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:border-[#4a2574] focus:ring-4 focus:ring-purple-100 outline-none transition text-sm"
-              />
+              <label className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <FiLock size={18} />
+                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="Password"
+                  className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 focus:border-[#183b78] focus:ring-2 focus:ring-[#183b78]/10 outline-none transition text-base bg-slate-50"
+                />
+              </label>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 mt-2 rounded-xl bg-[#8a44d6] hover:bg-[#7333b9] text-white font-semibold text-lg shadow-lg transition-all duration-200 hover:scale-[1.02] disabled:opacity-60"
+                className="w-full h-12 mt-2 rounded-xl bg-[#183b78] hover:bg-[#0f2e63] text-white font-semibold text-sm sm:text-base shadow-md transition-all duration-150 disabled:opacity-60"
               >
-                {loading ? "Signing In..." : "Log In"}
+                {loading ? 'Signing In...' : 'ENTER ADMIN CONTROL'}
               </button>
             </form>
           </div>
         </div>
       </motion.div>
     </div>
-    </div>
+  </div>
   );
 };
 

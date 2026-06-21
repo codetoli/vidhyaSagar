@@ -45,7 +45,7 @@ const Toast = ({ toast }) => (
         transition={{ type: 'spring', stiffness: 300, damping: 28 }}
         className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999]
           flex items-center gap-3 px-4 sm:px-5 py-3 sm:py-3.5
-          text-sm font-semibold text-white rounded-2xl shadow-2xl backdrop-blur-sm
+          text-base font-semibold text-white rounded-2xl shadow-2xl backdrop-blur-sm
           max-w-[calc(100vw-2rem)]
           ${toast.type === 'success'
             ? 'bg-emerald-500/95 border border-emerald-400/30'
@@ -95,7 +95,7 @@ const DropZone = ({ preview, onFile, onClear, label, accent = 'indigo' }) => {
           <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center ${accentIcon}`}>
             <FiUploadCloud size={22} />
           </div>
-          <p className="text-slate-200 text-sm font-medium">{label}</p>
+          <p className="text-slate-200 text-base font-medium">{label}</p>
           <p className="text-slate-500 text-xs">PNG, JPG · max 2 MB</p>
         </div>
       )}
@@ -111,7 +111,7 @@ const PdfBadge = ({ fileName, onClear }) => (
       <FiFileText size={18} className="text-violet-400" />
     </div>
     <div className="flex-1 min-w-0">
-      <p className="text-slate-200 text-sm font-semibold truncate">{fileName}</p>
+      <p className="text-slate-200 text-base font-semibold truncate">{fileName}</p>
       <p className="text-slate-500 text-[11px] mt-0.5">PDF selected</p>
     </div>
     {onClear && (
@@ -149,7 +149,7 @@ const CardHeader = ({ icon: Icon, title, subtitle, accent = 'indigo', right }) =
           <Icon size={16} className={txt} />
         </div>
         <div className="min-w-0">
-          <p className="text-slate-100 text-sm font-semibold truncate">{title}</p>
+          <p className="text-slate-100 text-base font-semibold truncate">{title}</p>
           <p className="text-slate-500 text-xs truncate">{subtitle}</p>
         </div>
       </div>
@@ -210,7 +210,7 @@ const GalleryTab = ({ showToast }) => {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Annual Sports Day 2025"
               className="w-full bg-[#1e2334] text-slate-100 placeholder-slate-500
-                py-2.5 px-3.5 text-sm rounded-xl border border-slate-700/60
+                py-2.5 px-3.5 text-base rounded-xl border border-slate-700/60
                 focus:outline-none focus:border-indigo-500/70 focus:ring-2
                 focus:ring-indigo-500/20 transition"
             />
@@ -243,7 +243,7 @@ const GalleryTab = ({ showToast }) => {
           <button
             type="submit"
             disabled={submitting || uploading}
-            className="w-full py-3 rounded-xl text-sm font-bold tracking-wide
+            className="w-full py-3 rounded-xl text-base font-bold tracking-wide
               bg-gradient-to-r from-indigo-500 to-violet-500
               hover:from-indigo-400 hover:to-violet-400
               disabled:opacity-40 disabled:cursor-not-allowed
@@ -266,7 +266,7 @@ const GalleryTab = ({ showToast }) => {
           subtitle={`${images.length} photo${images.length !== 1 ? 's' : ''} published`}
           right={<span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_2px_rgba(52,211,153,0.5)]" />}
         />
-        <div className="p-4 sm:p-5 min-h-[320px]">
+        <div className="p-5 sm:p-6 min-h-[320px]">
           {loading ? (
             <div className="flex justify-center py-20">
               <FiLoader size={24} className="animate-spin text-slate-500" />
@@ -276,11 +276,11 @@ const GalleryTab = ({ showToast }) => {
               <div className="w-14 h-14 rounded-2xl bg-slate-700/40 flex items-center justify-center">
                 <FiImage size={24} className="text-slate-500" />
               </div>
-              <p className="text-slate-400 text-sm font-medium">No photos yet</p>
+              <p className="text-slate-400 text-base font-medium">No photos yet</p>
               <p className="text-slate-600 text-xs">Uploaded photos will appear here</p>
             </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4">
+            ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {images.map((img) => (
                 <div
                   key={img.id}
@@ -423,7 +423,7 @@ const NoticesTab = ({ showToast }) => {
               onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="e.g. Holiday notice — Dashain 2025"
               className="w-full bg-[#1e2334] text-slate-100 placeholder-slate-500
-                py-2.5 px-3.5 text-sm rounded-xl border border-slate-700/60
+                py-2.5 px-3.5 text-base rounded-xl border border-slate-700/60
                 focus:outline-none focus:border-violet-500/70 focus:ring-2
                 focus:ring-violet-500/20 transition"
             />
@@ -436,7 +436,7 @@ const NoticesTab = ({ showToast }) => {
               onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
               placeholder="Brief details about the notice…"
               className="w-full bg-[#1e2334] text-slate-100 placeholder-slate-500
-                py-2.5 px-3.5 text-sm rounded-xl border border-slate-700/60
+                py-2.5 px-3.5 text-base rounded-xl border border-slate-700/60
                 focus:outline-none focus:border-violet-500/70 focus:ring-2
                 focus:ring-violet-500/20 transition resize-none"
             />
@@ -476,7 +476,7 @@ const NoticesTab = ({ showToast }) => {
                   flex items-center justify-center mb-3">
                   <FiUploadCloud size={22} className="text-violet-400" />
                 </div>
-                <p className="text-slate-200 text-sm font-medium">Click to upload Image or PDF</p>
+                <p className="text-slate-200 text-base font-medium">Click to upload Image or PDF</p>
                 <p className="text-slate-500 text-xs mt-1">JPG, PNG, PDF · max 10 MB</p>
               </div>
             )}
@@ -498,7 +498,7 @@ const NoticesTab = ({ showToast }) => {
           <button
             type="submit"
             disabled={submitting || uploading}
-            className="w-full py-3 rounded-xl text-sm font-bold tracking-wide
+            className="w-full py-3 rounded-xl text-base font-bold tracking-wide
               bg-gradient-to-r from-violet-500 to-fuchsia-500
               hover:from-violet-400 hover:to-fuchsia-400
               disabled:opacity-40 disabled:cursor-not-allowed
@@ -522,7 +522,7 @@ const NoticesTab = ({ showToast }) => {
           accent="violet"
           right={<span className="w-2 h-2 rounded-full bg-violet-400 shadow-[0_0_8px_2px_rgba(167,139,250,0.5)]" />}
         />
-        <div className="p-4 sm:p-5 min-h-[320px]">
+        <div className="p-5 sm:p-6 min-h-[320px]">
           {loading ? (
             <div className="flex justify-center py-20">
               <FiLoader size={24} className="animate-spin text-slate-500" />
@@ -532,7 +532,7 @@ const NoticesTab = ({ showToast }) => {
               <div className="w-14 h-14 rounded-2xl bg-slate-700/40 flex items-center justify-center">
                 <FiBell size={24} className="text-slate-500" />
               </div>
-              <p className="text-slate-400 text-sm font-medium">No notices yet</p>
+              <p className="text-slate-400 text-base font-medium">No notices yet</p>
               <p className="text-slate-600 text-xs">Published notices will appear here</p>
             </div>
           ) : (
@@ -565,7 +565,7 @@ const NoticesTab = ({ showToast }) => {
 
                       {/* Text */}
                       <div className="min-w-0 flex flex-col justify-center">
-                        <p className="text-slate-100 text-sm font-semibold line-clamp-1">{n.title}</p>
+                        <p className="text-slate-100 text-base font-semibold line-clamp-1">{n.title}</p>
                         {n.description && (
                           <p className="text-slate-400 text-xs line-clamp-2 mt-1 leading-relaxed">{n.description}</p>
                         )}
@@ -738,7 +738,7 @@ bannerRef,
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Annual Sports Day 2025"
               className="w-full bg-[#1e2334] text-slate-100 placeholder-slate-500
-                py-2.5 px-3.5 text-sm rounded-xl border border-slate-700/60
+                py-2.5 px-3.5 text-base rounded-xl border border-slate-700/60
                 focus:outline-none focus:border-indigo-500/70 focus:ring-2
                 focus:ring-indigo-500/20 transition"
             />
@@ -771,7 +771,7 @@ bannerRef,
           <button
             type="submit"
             disabled={submitting || uploading}
-            className="w-full py-3 rounded-xl text-sm font-bold tracking-wide
+            className="w-full py-3 rounded-xl text-base font-bold tracking-wide
               bg-gradient-to-r from-indigo-500 to-violet-500
               hover:from-indigo-400 hover:to-violet-400
               disabled:opacity-40 disabled:cursor-not-allowed
@@ -794,7 +794,7 @@ bannerRef,
           subtitle={`${images.length} photo${images.length !== 1 ? 's' : ''} published`}
           right={<span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_2px_rgba(52,211,153,0.5)]" />}
         />
-        <div className="p-4 sm:p-5 min-h-[320px]">
+        <div className="p-5 sm:p-6 min-h-[320px]">
           {loading ? (
             <div className="flex justify-center py-20">
               <FiLoader size={24} className="animate-spin text-slate-500" />
@@ -804,11 +804,11 @@ bannerRef,
               <div className="w-14 h-14 rounded-2xl bg-slate-700/40 flex items-center justify-center">
                 <FiImage size={24} className="text-slate-500" />
               </div>
-              <p className="text-slate-400 text-sm font-medium">No Banner yet</p>
+              <p className="text-slate-400 text-base font-medium">No Banner yet</p>
               <p className="text-slate-600 text-xs">Uploaded Banner will appear here</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {images.map((img) => (
                 <div
                   key={img.id}
@@ -863,7 +863,7 @@ bannerRef,
 const NavItem = ({ icon: Icon, label, active, onClick, count }) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-base font-medium
       transition-all duration-150 group
       ${active
         ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/25'
@@ -898,10 +898,10 @@ onNavigate
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600
           flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
-          <span className="text-orange-200 text-sm font-black">VS</span>
+          <span className="text-orange-200 text-base font-black">VS</span>
         </div>
         <div className="min-w-0">
-          <p className="text-orange-100 text-sm font-bold leading-tight truncate">विद्या सागर</p>
+          <p className="text-orange-100 text-base font-bold leading-tight truncate">विद्या सागर</p>
           <p className="text-orange-200 text-[10px] font-semibold uppercase tracking-widest">Admin Console</p>
         </div>
       </div>
@@ -931,7 +931,7 @@ onNavigate
     <div className="px-3 py-4 border-t border-slate-700/50">
       <button
         onClick={handleLogout}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-base font-medium
           text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent
           hover:border-red-500/20 transition-all"
       >
@@ -1037,9 +1037,10 @@ onNavigate={()=>setMobileNav(false)}
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
+        <div className="max-w-[1200px] w-full mx-auto px-4 sm:px-6 lg:px-8 -mt-5 sm:mt-0">
         <header className="sticky top-0 z-40 bg-[#0f1117]/85 backdrop-blur-md
           border-b border-slate-700/50 px-4 sm:px-6 py-3.5
-          grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 sm:gap-4">
+          grid grid-cols-[auto_minmax(0,1fr)] sm:grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 sm:gap-4">
 
           <button
             onClick={() => setMobileNav(true)}
@@ -1051,7 +1052,7 @@ onNavigate={()=>setMobileNav(false)}
           </button>
 
           <div className="min-w-0">
-            <h1 className="text-slate-100 text-sm sm:text-base font-bold">
+            <h1 className="text-slate-100 text-base sm:text-base font-bold">
 
 {activeTab==='gallery'
  ? 'Gallery'
@@ -1105,6 +1106,7 @@ activeTab==='gallery'
         </main>
       </div>
     </div>
+  </div>
   );
 };
 
