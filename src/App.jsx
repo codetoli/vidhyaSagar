@@ -93,9 +93,20 @@ function PublicLayout() {
 }
 
 /* ── Root: decides which layout to render ── */
+function ScrollToTop() {
+  const location = useLocation()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 })
+  }, [location.pathname])
+
+  return null
+}
+
 function AppRoutes() {
   return (
     <>
+      <ScrollToTop />
       <RevealObserver />
       <Routes>
         <Route path="/admin/login" element={<AdminLogin />} />
